@@ -4,17 +4,12 @@ import { media } from "../../../styles/breakpoints";
 export const layout = css`
     box-sizing: border-box;
     display: flex;
-    flex-grow: 1;
+    width: 100%;
+    height: 90vh;
 
     ${media.mobile} {
         height: 50vh;
     }
-`;
-
-export const container = css`
-    box-sizing: border-box;
-    display: flex;
-    width: 100%;
 `;
 
 export const defaultBox = css`

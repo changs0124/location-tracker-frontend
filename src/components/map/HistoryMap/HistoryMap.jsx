@@ -1,44 +1,69 @@
 /** @jsxImportSource @emotion/react */
 import * as s from './style';
-import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Polyline, useMap } from 'react-leaflet';
+
+const RecentLocation = ({ location }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (location && location.length === 2) {
+            map.setView(location);
+        }
+    }, [location, map]);
+
+    return null;
+};
 
 function HistoryMap({ location, index, history }) {
+    const defaultLocation = [location?.latitude, location?.longitude];
 
-    if (location?.isLoading) {
-        return <></>;
-    }
-    if (location?.isError || !location?.isSuccess || !location?.data?.data) {
-        return <></>;
-    }
+    const [tempHistory, setTempHistory] = useState([]);
 
-    const defaultCenter = [location?.data?.data?.latitude, location?.data?.data?.longitude];
+    useEffect(() => {
+        if (!!history.length) {
+            const temp = history?.map(h => JSON.parse(h.history))
+            setTempHistory(temp)
+        }
+    }, [history])
 
     return (
         <div css={s.layout}>
-            <div css={s.container}>
-                <MapContainer
-                    center={defaultCenter}
-                    zoom={17}
-                    style={{ height: '100%', width: '100%' }}
-                >
-                    <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; OpenStreetMap contributors'
-                    />
-                    {history.length > 0 && (
-                        <Polyline
-                            positions={
-                                JSON.parse(history[index]) !== null ? JSON.parse(history[index]) : defaultCenter
-                            }
-                            pathOptions={{
-                                color: "green",
-                                weight: 4,
-                                dashArray: "10, 10"
-                            }}
+            {
+                location ?
+                    <MapContainer
+                        center={defaultLocation}
+                        zoom={17}
+                        style={{ height: '100%', width: '100%' }}
+                    >
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; OpenStreetMap contributors'
                         />
-                    )}
-                </MapContainer>
-            </div>
+
+                        <RecentLocation location={!!tempHistory.length ? tempHistory[index][0] : defaultLocation} />
+
+                        {
+                            !!tempHistory.length &&
+                            <Polyline
+                                positions={
+                                    tempHistory[index]
+                                }
+                                pathOptions={{
+                                    color: "green",
+                                    weight: 4,
+                                    dashArray: "10, 10"
+                                }}
+                            />
+                        }
+                    </MapContainer>
+                    :
+                    <MapContainer
+                        center={[37.5662952, 126.9779451]}
+                        zoom={17}
+                        style={{ height: '100%', width: '100%' }}
+                    />
+            }
         </div>
     );
 }

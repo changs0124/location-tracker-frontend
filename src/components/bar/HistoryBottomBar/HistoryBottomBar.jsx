@@ -1,41 +1,44 @@
 /** @jsxImportSource @emotion/react */
 import * as s from './style';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { instance } from '../../../apis/instance';
 import { HiChevronDown } from "react-icons/hi2";
 
-function HistoryBottomBar({ cargoLocations, products, setHistory }) {
+function HistoryBottomBar({ tempCargoLocations, tempProducts, setHistory }) {
     const [isShowDestionation, setIsShowDestintation] = useState(false);
     const [isShowProduct, setIsShowProduct] = useState(false);
 
     const [delivery, setDelivery] = useState({
-        destination: { id: 0, cargoName: "전체" },
-        product: { id: 0, productName: "전체" }
+        cargoId: 0,
+        cargoName: "전체",
+        productId: 0,
+        productName: "전체"
     })
 
     const search = useMutation({
         mutationFn: ({ cargoId, productId }) =>
             instance.get(`/history/${cargoId}/${productId}`),
         onSuccess: (res) => {
-            console.log(res?.data);
             setHistory(res?.data)
         },
         onError: err => console.error(err)
     });
 
-    const handleSelectDestinationOnClick = (data) => {
+    const handleSelectCargoOnClick = (cargo) => {
         setDelivery(pre => ({
             ...pre,
-            destination: data
+            cargoId: cargo?.id,
+            cargoName: cargo.cargoName
         }))
         setIsShowDestintation(false)
     }
 
-    const handleSelectProductOnClick = (data) => {
+    const handleSelectProductOnClick = (product) => {
         setDelivery(pre => ({
             ...pre,
-            product: data
+            productId: product?.id,
+            productName: product?.productName
         }))
         setIsShowProduct(false)
     }
@@ -51,15 +54,19 @@ function HistoryBottomBar({ cargoLocations, products, setHistory }) {
     }
 
     const handleSearchOnClick = async () => {
-        await search.mutateAsync({ productId: delivery?.product?.id, cargoId: delivery?.destination?.id })
+        await search.mutateAsync({ cargoId: delivery?.cargoId, productId: delivery?.productId })
     }
 
     const handleResetOnClick = async () => {
         setDelivery({
-            product: { id: 0, productName: "전체" },
-            destination: { id: 0, cargoName: "전체" }
-        });
-        setHistory([])
+            cargoId: 0,
+            cargoName: "전체",
+            productId: 0,
+            productName: "전체"
+        })
+        setIsShowDestintation(false);
+        setIsShowProduct(false);
+        setHistory([]);
     }
 
     return (
@@ -67,12 +74,12 @@ function HistoryBottomBar({ cargoLocations, products, setHistory }) {
             <div css={s.container}>
                 <div css={s.selectBox(isShowDestionation)}>
                     <h2>도착지</h2>
-                    <p onClick={handleSelectDestinationBoxOnClick}>{delivery?.destination?.cargoName}<HiChevronDown /></p>
+                    <p onClick={handleSelectDestinationBoxOnClick}>{delivery?.cargoName}<HiChevronDown /></p>
                     <div css={s.optionBox}>
                         {
-                            (isShowDestionation && cargoLocations?.length > 0) && cargoLocations?.filter(cargo => cargo?.cargoName !== delivery?.destination?.cargoName)
+                            (isShowDestionation && tempCargoLocations?.length > 0) && tempCargoLocations?.filter(cargo => cargo?.cargoName !== delivery?.cargoName)
                                 .map(cargo => (
-                                    <p key={cargo?.id} onClick={() => handleSelectDestinationOnClick(cargo)}>
+                                    <p key={cargo?.id} onClick={() => handleSelectCargoOnClick(cargo)}>
                                         {cargo?.cargoName}
                                     </p>
                                 ))
@@ -81,10 +88,10 @@ function HistoryBottomBar({ cargoLocations, products, setHistory }) {
                 </div>
                 <div css={s.selectBox(isShowProduct)}>
                     <h2>제품</h2>
-                    <p onClick={handleSelectProductBoxOnClick}>{delivery.product.productName}<HiChevronDown /></p>
+                    <p onClick={handleSelectProductBoxOnClick}>{delivery?.productName}<HiChevronDown /></p>
                     <div css={s.optionBox}>
                         {
-                            (isShowProduct && products?.length > 0) && products?.filter(product => product?.productName !== delivery?.product?.productName)
+                            (isShowProduct && tempProducts?.length > 0) && tempProducts?.filter(product => product?.productName !== delivery?.productName)
                                 .map(product => (
                                     <p key={product?.id} onClick={() => handleSelectProductOnClick(product)}>
                                         {product?.productName}

@@ -1,3 +1,5 @@
+/** @jsxImportSource @emotion/react */
+import * as s from './style';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { instance } from '../../apis/instance';
@@ -5,8 +7,9 @@ import { useRecoilValue } from 'recoil';
 import { deviceIdAtom } from '../../atoms/deviceAtoms';
 import Layout from '../../components/Layout/Layout';
 import IndexSideBar from '../../components/bar/IndexSideBar/IndexSideBar';
-import BottomBar from '../../components/bar/BottomBar/BottomBar';
 import IndexMap from '../../components/map/IndexMap/IndexMap';
+import Header from '../../components/Header/Header';
+import IndexBottomBar from '../../components/bar/IndexBottomBar/IndexBottomBar';
 
 function IndexPage() {
     const [position, setPosition] = useState([]);
@@ -15,29 +18,10 @@ function IndexPage() {
 
     const deviceId = useRecoilValue(deviceIdAtom)
 
-    const location = useQuery({
-        queryKey: ['deviceLocation', deviceId],
-        queryFn: () => instance.get(`/location/${deviceId}`),
-        enabled: !!deviceId,
-        refetchOnWindowFocus: false,
-        retry: 0
-    });
-    
-    const cargoLocations = useQuery({
-        queryKey: ["cargoLocations"],
-        queryFn: () => instance.get("/locations/cargo"),
-        enabled: !!deviceId,
-        refetchOnWindowFocus: false,
-        retry: 0
-    })
-
-    const products = useQuery({
-        queryKey: ["products"],
-        queryFn: () => instance.get("/products"),
-        enabled: !!deviceId,
-        refetchOnWindowFocus: false,
-        retry: 0
-    })
+    const queryClient = useQueryClient();
+    const location = queryClient.getQueryData(['deviceLocation', deviceId])
+    const cargoLocations = queryClient.getQueryData(["cargoLocations"])
+    const products = queryClient.getQueryData(["products"])
 
     const deviceLocations = useQuery({
         queryKey: ["deviceLocations"],
@@ -81,31 +65,34 @@ function IndexPage() {
         <Layout>
             <IndexSideBar
                 deviceId={deviceId}
-                cargoLocations={cargoLocations?.data?.data}
-                products={products?.data?.data}
+                cargoLocations={cargoLocations?.data}
+                products={products?.data}
                 positions={positions}
                 setPositions={setPositions}
                 isTracking={isTracking}
                 setIsTracking={setIsTracking}
             />
-            {location && (
-                <IndexMap
-                    location={location?.data?.data}
-                    position={position}
+            <div css={s.layout}>
+                <Header />
+                {location && (
+                    <IndexMap
+                        location={location?.data}
+                        position={position}
+                        positions={positions}
+                        cargoLocations={cargoLocations?.data}
+                        deviceLocations={deviceLocations?.data?.data}
+                    />
+                )}
+                <IndexBottomBar
+                    deviceId={deviceId}
+                    cargoLocations={cargoLocations?.data}
+                    products={products?.data}
                     positions={positions}
-                    cargoLocations={cargoLocations?.data?.data}
-                    deviceLocations={deviceLocations?.data?.data}
+                    setPositions={setPositions}
+                    isTracking={isTracking}
+                    setIsTracking={setIsTracking}
                 />
-            )}
-            <BottomBar
-                deviceId={deviceId}
-                cargoLocations={cargoLocations?.data?.data}
-                products={products?.data?.data}
-                positions={positions}
-                setPositions={setPositions}
-                isTracking={isTracking}
-                setIsTracking={setIsTracking}
-            />
+            </div>
         </Layout>
     );
 }

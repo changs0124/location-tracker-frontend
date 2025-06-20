@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import * as s from './style';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -57,30 +57,28 @@ const runIcon = L.icon({
     shadowSize: [41, 41]
 })
 
-const RecenterMapToUser = ({ center }) => {
+const RecentLocation = ({ location }) => {
     const map = useMap();
 
     useEffect(() => {
-        if (center) {
-            map.setView(center);
+        if (location) {
+            map.setView(location);
         }
-    }, [center, map]);
+    }, [location, map]);
 
     return null;
 };
 
 function IndexMap({ location, position, positions, cargoLocations, deviceLocations }) {
-
-    const defaultCenter = [location?.latitude, location?.longitude];
-    const center = position.length > 0 ? position : defaultCenter;
+    const defaultLocation = [location?.latitude, location?.longitude];
+    const tempLocation = !!position.length ? position : defaultLocation;
 
     return (
         <div css={s.layout}>
-            <div css={s.container}>
-                {
-                    (location && position) &&
+            {
+                location ?
                     <MapContainer
-                        center={center}
+                        center={tempLocation}
                         zoom={17}
                         style={{ height: '100%', width: '100%' }}
                     >
@@ -88,10 +86,12 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             attribution='&copy; OpenStreetMap contributors'
                         />
-
-                        <RecenterMapToUser center={center} />
-
-                        {positions && positions.length > 1 && (
+                        <RecentLocation
+                            location={tempLocation}
+                        />
+                        {
+                            (positions && positions.length > 1)
+                            &&
                             <Polyline
                                 positions={positions}
                                 pathOptions={{
@@ -100,20 +100,29 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                                     dashArray: "10, 10"
                                 }}
                             />
-                        )}
-
-                        <Marker icon={myIcon} position={center}></Marker>
-
+                        }
+                        <Marker
+                            icon={myIcon}
+                            position={tempLocation}
+                        />
                         {
                             cargoLocations?.map(cargo => (
-                                <Marker icon={cargoIcon} key={cargo.id} position={[cargo.latitude, cargo.longitude]}>
-                                    <Popup>{cargo.cargoName}</Popup>
+                                <Marker
+                                    icon={cargoIcon}
+                                    key={cargo?.id}
+                                    position={[cargo?.latitude, cargo?.longitude]}
+                                >
+                                    <Popup>{cargo?.cargoName}</Popup>
                                 </Marker>
                             ))
                         }
                         {
                             deviceLocations?.map(device => (
-                                <Marker key={device?.id} icon={device?.status === 1 ? runIcon : deviceIcon} position={[device?.latitude, device?.longitude]}>
+                                <Marker
+                                    key={device?.id}
+                                    icon={device?.status === 1 ? runIcon : deviceIcon}
+                                    position={[device?.latitude, device?.longitude]}
+                                >
                                     <Popup>
                                         {
                                             device?.status === 1
@@ -130,8 +139,13 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                             ))
                         }
                     </MapContainer>
-                }
-            </div>
+                    :
+                    <MapContainer
+                        center={[37.5662952, 126.9779451]}
+                        zoom={17}
+                        style={{ height: '100%', width: '100%' }}
+                    />
+            }
         </div>
     );
 }

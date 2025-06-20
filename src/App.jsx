@@ -11,7 +11,6 @@ import DefaultPage from './pages/DefaultPage/DefaultPage';
 import IndexPage from './pages/IndexPage/IndexPage';
 import HistoryPage from './pages/HistoryPage/HistoryPage';
 
-
 function App() {
     const [deviceId, setDeviceId] = useRecoilState(deviceIdAtom);
 
@@ -32,12 +31,36 @@ function App() {
         retry: 0
     });
 
+    const location = useQuery({
+        queryKey: ['deviceLocation', deviceId],
+        queryFn: () => instance.get(`/location/${deviceId}`),
+        enabled: auth.isSuccess && !!auth?.data?.data,
+        refetchOnWindowFocus: false,
+        retry: 0
+    });
+
+    const cargoLocations = useQuery({
+        queryKey: ["cargoLocations"],
+        queryFn: () => instance.get("/locations/cargo"),
+        enabled: auth.isSuccess && !!auth?.data?.data,
+        refetchOnWindowFocus: false,
+        retry: 0
+    })
+
+    const products = useQuery({
+        queryKey: ["products"],
+        queryFn: () => instance.get("/products"),
+        enabled: auth.isSuccess && !!auth?.data?.data,
+        refetchOnWindowFocus: false,
+        retry: 0
+    })
+
     return (
         <>
             <Global styles={reset} />
             <Routes>
-                <Route path="/" element={auth?.data?.data > 0 ? <IndexPage /> : <DefaultPage />} />
-                <Route path="/history" element={auth?.data?.data > 0 ? <HistoryPage /> : <DefaultPage />} />
+                <Route path="/" element={auth.isSuccess && !!auth?.data?.data ? <IndexPage /> : <DefaultPage />} />
+                <Route path="/history" element={auth.isSuccess && !!auth?.data?.data ? <HistoryPage /> : <DefaultPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </>

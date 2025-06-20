@@ -1,57 +1,43 @@
 /** @jsxImportSource @emotion/react */
 import * as s from './style';
-import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRecoilValue } from 'recoil';
 import { deviceIdAtom } from '../../atoms/deviceAtoms';
+import { useEffect, useState } from 'react';
+import { HiOutlineStop, HiMiniCheck } from "react-icons/hi2";
+import HistoryBottomBar from '../../components/bar/HistoryBottomBar/HistoryBottomBar';
+import Header from '../../components/Header/Header';
 import HistorySideBar from '../../components/bar/HistorySideBar/HistorySideBar';
 import Layout from '../../components/Layout/Layout';
 import HistoryMap from '../../components/map/HistoryMap/HistoryMap';
-import { instance } from '../../apis/instance';
-import { useState } from 'react';
-import { HiOutlineStop, HiMiniCheck } from "react-icons/hi2";
-import HistoryBottomBar from '../../components/bar/HistoryBottomBar/HistoryBottomBar';
 
 function HistoryPage() {
-    const [history, setHistory] = useState([]);
     const [index, setIndex] = useState(0);
+    const [history, setHistory] = useState([]);
+    const [tempCargoLocations, setTempCargoLocations] = useState([]);
+    const [tempProducts, setTempProducts] = useState([]);
 
     const deviceId = useRecoilValue(deviceIdAtom);
 
-    const location = useQuery({
-        queryKey: ['deviceLocation', deviceId],
-        queryFn: () => instance.get(`/location/${deviceId}`),
-        enabled: !!deviceId,
-        refetchOnWindowFocus: false,
-        retry: 0
-    });
+    const queryClient = useQueryClient();
+    const location = queryClient.getQueryData(['deviceLocation', deviceId])
+    const cargoLocations = queryClient.getQueryData(["cargoLocations"])
+    const products = queryClient.getQueryData(["products"])
 
-    const cargoLocations = useQuery({
-        queryKey: ["cargoLocations"],
-        queryFn: () => instance.get("/locations/cargo").then(res => {
-            const list = [
+    useEffect(() => {
+        if (cargoLocations?.status === 200) {
+            setTempCargoLocations([
                 { id: 0, cargoName: "전체" },
-                ...res.data
-            ];
-            return list;
-        }),
-        enabled: !!deviceId,
-        refetchOnWindowFocus: false,
-        retry: 0
-    })
-
-    const products = useQuery({
-        queryKey: ["products"],
-        queryFn: () => instance.get("/products").then(res => {
-           const list = [
+                ...cargoLocations?.data
+            ])
+        }
+        if (products?.status === 200) {
+            setTempProducts([
                 { id: 0, productName: "전체" },
-                ...res.data
-            ];
-            return list;
-        }),
-        enabled: !!deviceId,
-        refetchOnWindowFocus: false,
-        retry: 0
-    })
+                ...products?.data
+            ])
+        }
+    }, [cargoLocations, products])
 
     const handleSelectHistoryOnClick = (data) => {
         setIndex(data)
@@ -59,9 +45,19 @@ function HistoryPage() {
 
     return (
         <Layout>
-            <HistorySideBar deviceId={deviceId} cargoLocations={cargoLocations?.data} products={products?.data} setHistory={setHistory} />
+            <HistorySideBar
+                deviceId={deviceId}
+                tempCargoLocations={tempCargoLocations}
+                tempProducts={tempProducts}
+                setHistory={setHistory}
+            />
             <div css={s.layout}>
-                <HistoryMap location={location} index={index} history={history.map(h => h.history)} />
+                <Header />
+                <HistoryMap
+                    location={location?.data}
+                    index={index}
+                    history={history}
+                />
                 <div css={s.historyBox}>
                     {
                         history?.map((his, idx) => (
@@ -77,8 +73,14 @@ function HistoryPage() {
                         ))
                     }
                 </div>
+                <HistoryBottomBar
+                    deviceId={deviceId}
+                    tempCargoLocations={tempCargoLocations}
+                    tempProducts={tempProducts}
+                    setHistory={setHistory}
+                />
             </div>
-            <HistoryBottomBar deviceId={deviceId} cargoLocations={cargoLocations?.data?.data} products={products?.data?.data} setHistory={setHistory} />
+
         </Layout>
     );
 }

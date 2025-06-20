@@ -8,7 +8,7 @@ export const layout = css`
     align-items: center;
     border-right: 3px solid #dbdbdb;
     width: 20%;
-    height: 90vh;
+    height: 100vh;
     background-color: #ffffff;
 
     ${media.mobile} {
@@ -20,6 +20,37 @@ export const layout = css`
     }
 `;
 
+export const logoBox = css`
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 3px solid #dbdbdb;
+    width: 100%;
+    height: 10vh;
+
+    & > svg {
+        margin-left: 15px;
+        text-align: center;
+        font-size: 25px;
+    }
+`;
+
+export const imgBox = css`
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 33%;
+    height: 10vh;
+    overflow: hidden;
+
+    & > img {
+        width: 100%;
+        object-fit: cover;
+    }
+`;
+
 export const selectBox = (isShow) => css`
     box-sizing: border-box;
     display: flex;
@@ -27,10 +58,11 @@ export const selectBox = (isShow) => css`
     align-items: center;
     border-bottom: 3px solid #dbdbdb;
     width: 100%;
-    height: 45%;
+    height: 40vh;
+    overflow: auto;
 
     & > h2 {
-        padding: 10px;
+        padding: 10px 0px;
         width: 100%;
         color: #666666;
         text-align: center;
@@ -63,16 +95,19 @@ export const selectBox = (isShow) => css`
 export const optionBox = css`
     box-sizing: border-box;
     display: flex;
-    flex-grow: 1;
     flex-direction: column;
     width: 100%;
+    height: 20vh;
     overflow: auto;
+    ::-webkit-scrollbar {
+        display: none;
+    }
 
     & > p {
         box-sizing: border-box;
         display: flex;
         align-items: center;
-        border-bottom: 3px solid #dbdbdb;
+        border-bottom: 1px solid #dbdbdb;
         padding: 10px 25px;
         width: 100%;
         color: #333333;
@@ -86,6 +121,7 @@ export const buttonBox = css`
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     padding: 10px;
     width: 100%;
 

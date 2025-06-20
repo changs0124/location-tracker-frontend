@@ -60,6 +60,18 @@ export const selectBox = (isShow) => css`
             cursor: pointer;
         }
     }
+
+    ${media.mobile} {
+        & > h2 {
+            padding: 5px 0px;
+            font-size: 16px;
+        }
+
+        & > p {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+    }
 `;
 
 export const optionBox = css`
@@ -84,6 +96,15 @@ export const optionBox = css`
         font-size: 18px;
         font-weight: 500;
         cursor: pointer;
+    }
+
+    ${media.mobile} {
+        top: 69px;
+
+        & > p {
+            padding: 5px 5px 5px 15px;
+            font-size: 15px;
+        }
     }
 `;
 
@@ -112,5 +133,12 @@ export const buttonBox = css`
 
     & > :not(:nth-last-of-type(1)) {
         margin-bottom: 10px;
+    }
+
+    ${media.mobile} {
+        padding: 5px;
+        & > button {
+            font-size: 16px;
+        }
     }
 `;

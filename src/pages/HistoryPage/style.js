@@ -27,12 +27,14 @@ export const historyBox = css`
     overflow: auto;
 
     ${media.mobile} {
-        height: 20vh;
+        flex-grow: 0;
+        height: 30vh;
         border-bottom: none;
     }
 
     ${media.mobileLandscape} {
-        height: 20vh;
+        flex-grow: 0;
+        height: 30vh;
         border-bottom: none;
     }
 `;
@@ -44,6 +46,10 @@ export const historyItem = css`
     align-items: center;
     width: 100%;
     cursor: pointer;
+
+    ::-webkit-scrollbar {
+        display: none;
+    }
     
     & > svg {
         position: absolute;
@@ -61,11 +67,13 @@ export const historyItem = css`
         border-bottom: 3px solid #dbdbdb;
         padding: 5px 10px 5px 45px;
         width: 25%;
+        white-space: nowrap;
         cursor: pointer;
     }
 
     ${media.mobile} {
-        overflow: auto;
+        overflow-x: auto;
+        
         & > svg {
             left: 5px;
             font-size: 15px;
@@ -78,10 +86,14 @@ export const historyItem = css`
             align-items: center;
             border-right: 3px solid #dbdbdb;
             border-bottom: 3px solid #dbdbdb;
-            padding: 5px 10px 5px 45px;
+            padding: 5px;
             width: fit-content;
-            font-size: 16px;
+            font-size: 13px;
             cursor: pointer;
+        }
+
+        & > p:nth-of-type(1) {
+            padding-left: 23px;
         }
     }
 
