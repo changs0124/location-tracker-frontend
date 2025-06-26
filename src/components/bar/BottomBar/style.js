@@ -9,18 +9,22 @@ export const layout = css`
         position: relative;
         display: flex;
         flex-direction: column;
-        border-top: 3px solid #dbdbdb;
         width: 100%;
-        height: 40vh;
-        overflow: auto;
     }
 `;
 
 export const container = css`
     box-sizing: border-box;
     display: flex;
-    justify-content: space-between;
     width: 100%;
+
+    & > div:nth-of-type(1) {
+        border-right: 1px solid #dbdbdb;
+    }
+
+    & > div:nth-of-type(2) {
+        border-left: 1px solid #dbdbdb;
+    }
 `;
 
 export const selectBox = (isShow) => css`
@@ -29,116 +33,93 @@ export const selectBox = (isShow) => css`
     display: flex;
     flex-direction: column;
     align-items: center;
-    border-bottom: 3px solid #dbdbdb;
+    border-bottom: 2px solid #dbdbdb;
     width: 50%;
 
     & > h2 {
-        padding: 10px 0px;
+        border-bottom: 2px solid #dbdbdb;
+        padding: 5px 0px;
         width: 100%;
         color: #666666;
+        font-size: 16px;
         text-align: center;
     }
 
     & > p {
         box-sizing: border-box;
-        position: relative;
         display: flex;
         align-items: center;
-        border-top: 3px solid #dbdbdb;
-        padding: 10px 15px;
+        padding: 5px 10px;
         width: 100%;
-        color: #333333;
-        font-size: 20px;
+        color: #666666;
+        font-size: 16px;
         font-weight: 500;
         cursor: pointer;
 
         & > svg {
             position: absolute;
-            right: 10px;
+            right: 5px;
             transform: rotate(${isShow ? '180deg' : '0deg'});
             transition: transform 0.3s ease;
             cursor: pointer;
-        }
-    }
-
-    ${media.mobile} {
-        & > h2 {
-            padding: 5px 0px;
-            font-size: 16px;
-        }
-
-        & > p {
-            padding: 5px 10px;
-            font-size: 14px;
         }
     }
 `;
 
 export const optionBox = css`
     box-sizing: border-box;
-    position: absolute;
-    top: 105px;
     display: flex;
     flex-direction: column;
     width: 100%;
-    overflow: auto;
-    z-index: 97;
-    background-color: #cccccc;
+    max-height: 100px;
+    background-color: #dbdbdb;
+    overflow-y: auto;
+
+    ::-webkit-scrollbar {
+        display: none;
+    }
 
     & > p {
         box-sizing: border-box;
         display: flex;
         align-items: center;
-        border-bottom: 3px solid #dbdbdb;
-        padding: 10px 10px 10px 20px;
+        border-bottom: 1px solid #ffffff;
+        padding: 5px 5px 5px 15px;
         width: 100%;
         color: #666666;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 500;
         cursor: pointer;
     }
 
-    ${media.mobile} {
-        top: 69px;
-
-        & > p {
-            padding: 5px 5px 5px 15px;
-            font-size: 15px;
-        }
+    & > p:nth-last-of-type(1) {
+        border-bottom: none;
     }
 `;
 
 export const buttonBox = css`
     box-sizing: border-box;
-    position: absolute;
-    bottom: 0;
     display: flex;
-    flex-direction: column;
-    justify-content: end;
-    padding: 10px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
     width: 100%;
     z-index: 96;
 
     & > button {
-        border: 3px solid #dbdbdb;
+        border: 2px solid #dbdbdb;
         border-radius: 20px;
-        font-size: 20px;
+        width: 49%;
+        color: #666666;
+        font-size: 16px;
+
+        :disabled {
+            color: #ffffff;
+        }
 
         :active {
             background-color: #dbdbdb;
             color: #ffffff;
-            font-size: 20px;
-        }
-    }
-
-    & > :not(:nth-last-of-type(1)) {
-        margin-bottom: 10px;
-    }
-
-    ${media.mobile} {
-        padding: 5px;
-        & > button {
-            font-size: 16px;
         }
     }
 `;

@@ -22,17 +22,10 @@ export const container = css`
     text-align: center;
 
     & > h2 {
-        padding-bottom: 10px;
+        padding-bottom: 20px;
         color: #666666;
         font-size: 30px;
         font-weight: 600;
-    }
-
-    & > p {
-        margin-bottom: 30px;
-        color: #666666;
-        font-size: 20px;
-        font-weight: 500;
     }
 
     ${media.mobile} {
@@ -42,6 +35,24 @@ export const container = css`
     ${media.mobileLandscape} {
         width: 90%;
     }
+`;
+
+export const inputBox =css`
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+
+    & > input {
+        border-bottom: 2px solid #dbdbdb;
+        padding: 5px 10px;
+        text-align: center;
+        font-size: 18px;
+
+    }
+    
 `;
 
 export const buttonBox = css`

@@ -6,7 +6,6 @@ export const reset = css`
         padding: 0;
         width: 100%;
         height: 100%;
-
     }
     
     h1, h2, h3, ul, p {

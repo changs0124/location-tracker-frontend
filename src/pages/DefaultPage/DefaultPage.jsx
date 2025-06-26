@@ -5,32 +5,43 @@ import { instance } from '../../apis/instance';
 import { v4 as uuidv4 } from 'uuid';
 import { useRecoilState } from 'recoil';
 import { deviceIdAtom } from '../../atoms/deviceAtoms';
+import { useState } from 'react';
 
 function DefaultPage() {
     const [deviceId, setDeviceId] = useRecoilState(deviceIdAtom);
 
+    const [deviceName, setDeviceName] = useState("");
+
     const registerDevice = useMutation({
-        mutationFn: ({ latitude, longitude }) => instance.post("/device", { deviceId, latitude, longitude, }),
+        mutationFn: ({ latitude, longitude }) =>
+            instance.post("/device", {
+                deviceId,
+                deviceName: deviceName.replace(/\s+/g, ""),
+                latitude,
+                longitude,
+        }),
         onSuccess: () => {
-            console.log("장치 등록 성공");
             localStorage.setItem("deviceId", deviceId)
             alert("장치 등록 성공");
             window.location.reload("/");
         },
         onError: (error) => {
-            console.error("등록 실패:", error);
-            alert("장치 등록 실패");
+            alert(error?.response?.data?.message);
         },
     });
 
     const handleRegisterOnClick = () => {
+        if(deviceName.trim() === "") {
+            alert("장치 이름을 입력해주세요.")
+            return
+        }
+
         const id = uuidv4();
         setDeviceId(id);
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                const { latitude, longitude, accuracy } = position.coords;
-                console.log(`lat=${latitude}, lng=${longitude}, accuracy=${accuracy}m`);
+                const { latitude, longitude } = position.coords;
                 registerDevice.mutate({
                     deviceId: id,
                     latitude,
@@ -41,15 +52,21 @@ function DefaultPage() {
                 console.error('위치 권한 오류:', err);
                 alert('위치 권한을 허용해주세요.');
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 0 }
         );
     };
+
+    const handleDeviceNameOnChange = (e) => {
+        setDeviceName(e.target.value)
+    }
 
     return (
         <div css={s.layout}>
             <div css={s.container}>
                 <h2>장치 등록</h2>
-                <p>현재 장치를 등록하려면 확인을 눌러주세요.</p>
+                <div css={s.inputBox}>
+                    <input type="text" name="" value={deviceName} onChange={handleDeviceNameOnChange} placeholder="장치 이름을 입력 해주세요."/>
+                </div>
                 <div css={s.buttonBox}>
                     <button onClick={handleRegisterOnClick} disabled={registerDevice.isPending}>
                         {

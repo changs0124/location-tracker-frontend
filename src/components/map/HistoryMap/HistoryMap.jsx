@@ -40,9 +40,9 @@ function HistoryMap({ location, index, history }) {
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             attribution='&copy; OpenStreetMap contributors'
                         />
-
-                        <RecentLocation location={!!tempHistory.length ? tempHistory[index][0] : defaultLocation} />
-
+                        <RecentLocation
+                            location={!!tempHistory.length ? tempHistory[index][0] : defaultLocation}
+                        />
                         {
                             !!tempHistory.length &&
                             <Polyline

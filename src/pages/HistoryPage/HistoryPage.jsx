@@ -1,21 +1,29 @@
 /** @jsxImportSource @emotion/react */
 import * as s from './style';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRecoilValue } from 'recoil';
 import { deviceIdAtom } from '../../atoms/deviceAtoms';
 import { useEffect, useState } from 'react';
 import { HiOutlineStop, HiMiniCheck } from "react-icons/hi2";
-import HistoryBottomBar from '../../components/bar/HistoryBottomBar/HistoryBottomBar';
-import Header from '../../components/Header/Header';
-import HistorySideBar from '../../components/bar/HistorySideBar/HistorySideBar';
+import { instance } from '../../apis/instance';
 import Layout from '../../components/Layout/Layout';
 import HistoryMap from '../../components/map/HistoryMap/HistoryMap';
+import SideBar from '../../components/bar/SideBar/SideBar';
+import BottomBar from '../../components/bar/BottomBar/BottomBar';
 
 function HistoryPage() {
     const [index, setIndex] = useState(0);
     const [history, setHistory] = useState([]);
     const [tempCargoLocations, setTempCargoLocations] = useState([]);
     const [tempProducts, setTempProducts] = useState([]);
+    const [isShowCargoLoations, setIsShowCargoLocations] = useState(false);
+    const [isShowProducts, setIsShowProducts] = useState(false);
+    const [delivery, setDelivery] = useState({
+        cargoId: 0,
+        cargoName: "",
+        productId: 0,
+        productName: ""
+    })
 
     const deviceId = useRecoilValue(deviceIdAtom);
 
@@ -39,48 +47,99 @@ function HistoryPage() {
         }
     }, [cargoLocations, products])
 
+    const search = useMutation({
+        mutationFn: ({ cargoId, productId }) =>
+            instance.get(`/history?cargoId=${cargoId}&productId=${productId}`),
+        onSuccess: (res) => {
+            setHistory(res?.data)
+        },
+        onError: (error) => {
+            alert(error?.response?.data?.message);
+        }
+    });
+
+    const handleSearchOnClick = async () => {
+        await search.mutateAsync({ cargoId: delivery?.cargoId, productId: delivery?.productId });
+    }
+
+    const handleResetOnClick = async () => {
+        setDelivery({
+            cargoId: 0,
+            cargoName: "전체",
+            productId: 0,
+            productName: "전체"
+        })
+        setIsShowCargoLocations(false);
+        setIsShowProducts(false);
+        setHistory([]);
+    }
+
     const handleSelectHistoryOnClick = (data) => {
         setIndex(data)
     }
 
     return (
         <Layout>
-            <HistorySideBar
-                deviceId={deviceId}
-                tempCargoLocations={tempCargoLocations}
-                tempProducts={tempProducts}
-                setHistory={setHistory}
+            <SideBar
+                delivery={delivery}
+                setDelivery={setDelivery}
+                isShowCargoLoations={isShowCargoLoations}
+                setIsShowCargoLocations={setIsShowCargoLocations}
+                cargoLocations={tempCargoLocations}
+                isShowProducts={isShowProducts}
+                setIsShowProducts={setIsShowProducts}
+                products={tempProducts}
+                onClick1={handleSearchOnClick}
+                onClick2={handleResetOnClick}
             />
             <div css={s.layout}>
-                <Header />
                 <HistoryMap
                     location={location?.data}
                     index={index}
                     history={history}
                 />
-                <div css={s.historyBox}>
-                    {
-                        history?.map((his, idx) => (
-                            <div key={his?.id} css={s.historyItem} onClick={() => handleSelectHistoryOnClick(idx)}>
-                                {
-                                    index === idx ? <HiMiniCheck /> : <HiOutlineStop />
-                                }
-                                <p>목적지 : {his?.cargoName}</p>
-                                <p>제품 : {his?.productName}</p>
-                                <p>시작 시간 : {his?.startTime?.replace("T", " ").substring(0, 16)}</p>
-                                <p>종료 시간 : {his?.endTime?.replace("T", " ").substring(0, 16)}</p>
-                            </div>
-                        ))
-                    }
-                </div>
-                <HistoryBottomBar
-                    deviceId={deviceId}
-                    tempCargoLocations={tempCargoLocations}
-                    tempProducts={tempProducts}
-                    setHistory={setHistory}
-                />
+                {
+                    !!history?.length &&
+                    <div css={s.tableBox}>
+                        <table css={s.tableLayout}>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>목적지</th>
+                                    <th>장치</th>
+                                    <th>제품</th>
+                                    <th>시작 시간</th>
+                                    <th>종료 시간</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {history?.map((his, idx) => (
+                                    <tr key={his?.id} onClick={() => handleSelectHistoryOnClick(idx)} >
+                                        <td>{index === idx ? <HiMiniCheck /> : <HiOutlineStop />}</td>
+                                        <td>{his?.cargoName}</td>
+                                        <td>{his?.deviceName}</td>
+                                        <td>{his?.productName}</td>
+                                        <td>{his?.startTime?.replace("T", " ").substring(0, 16)}</td>
+                                        <td>{his?.endTime?.replace("T", " ").substring(0, 16)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
-
+            <BottomBar
+                delivery={delivery}
+                setDelivery={setDelivery}
+                isShowCargoLoations={isShowCargoLoations}
+                setIsShowCargoLocations={setIsShowCargoLocations}
+                cargoLocations={tempCargoLocations}
+                isShowProducts={isShowProducts}
+                setIsShowProducts={setIsShowProducts}
+                products={tempProducts}
+                onClick1={handleSearchOnClick}
+                onClick2={handleResetOnClick}
+            />
         </Layout>
     );
 }

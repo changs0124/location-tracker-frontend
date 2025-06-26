@@ -2,6 +2,7 @@
 import * as s from './style';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { HiOutlineTruck } from "react-icons/hi2";
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -90,8 +91,7 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                             location={tempLocation}
                         />
                         {
-                            (positions && positions.length > 1)
-                            &&
+                            (positions && positions.length > 1) &&
                             <Polyline
                                 positions={positions}
                                 pathOptions={{
@@ -104,7 +104,13 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                         <Marker
                             icon={myIcon}
                             position={tempLocation}
-                        />
+                        >
+                            <Popup>
+                                <div css={s.popupBox}>
+                                    <p>장치 : {location?.deviceName}</p>
+                                </div>
+                            </Popup>
+                        </Marker>
                         {
                             cargoLocations?.map(cargo => (
                                 <Marker
@@ -112,7 +118,11 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                                     key={cargo?.id}
                                     position={[cargo?.latitude, cargo?.longitude]}
                                 >
-                                    <Popup>{cargo?.cargoName}</Popup>
+                                    <Popup>
+                                        <div css={s.popupBox}>
+                                            <p>{cargo?.cargoName}</p>
+                                        </div>
+                                    </Popup>
                                 </Marker>
                             ))
                         }
@@ -128,11 +138,15 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                                             device?.status === 1
                                                 ?
                                                 <div css={s.popupBox}>
+                                                    <p>장치: {device?.deviceName}</p>
                                                     <p>목적지 : {device?.cargoName}</p>
                                                     <p>화물 : {device?.productName}</p>
                                                 </div>
                                                 :
-                                                <p css={s.defaultBox}>운행 정보 없음</p>
+                                                <div css={s.popupBox}>
+                                                    <p>장치: {device?.deviceName}</p>
+                                                    <p>운행 정보 없음</p>
+                                                </div>
                                         }
                                     </Popup>
                                 </Marker>
