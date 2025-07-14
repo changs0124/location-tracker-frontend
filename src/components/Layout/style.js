@@ -11,6 +11,7 @@ export const layout = css`
 
 export const container = css`
     box-sizing: border-box;
+    position: relative;
     display: flex;
     flex-grow: 1;
     width: 100%;

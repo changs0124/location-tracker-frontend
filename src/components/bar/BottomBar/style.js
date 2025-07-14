@@ -97,6 +97,30 @@ export const optionBox = css`
     }
 `;
 
+export const inputBox = css`
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+
+    & > span {
+        border-right: 3px solid #dbdbdb;
+        width: 30%;
+        color: #333333;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    & > input {
+        padding: 0;
+        width: 70%;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+    }
+`;
+
 export const buttonBox = css`
     box-sizing: border-box;
     display: flex;

@@ -42,6 +42,7 @@ export const tableBox = css`
 export const tableLayout = css`
     width: 100%;
     border-collapse: collapse;
+    
 
     th, td {
         border: 1px solid #dbdbdb;
@@ -55,6 +56,10 @@ export const tableLayout = css`
         background-color: #f8f8f8;
         color: #666666;
         font-weight: 600;
+    }
+
+    tr > td {
+        cursor: pointer;
     }
 
     svg {

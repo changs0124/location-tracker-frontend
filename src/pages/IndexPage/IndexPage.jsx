@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { instance } from '../../apis/instance';
 import { useRecoilValue } from 'recoil';
-import { deviceIdAtom } from '../../atoms/deviceAtoms';
 import Layout from '../../components/Layout/Layout';
 import IndexMap from '../../components/map/IndexMap/IndexMap';
 import SideBar from '../../components/bar/SideBar/SideBar';
 import BottomBar from '../../components/bar/BottomBar/BottomBar';
+import { userCodeAtom } from '../../atoms/userAtoms';
+import InfoBox from '../../components/InfoBox/InfoBox';
 
 function IndexPage() {
     const [position, setPosition] = useState([]);
@@ -19,10 +20,11 @@ function IndexPage() {
         cargoId: 0,
         cargoName: "",
         productId: 0,
-        productName: ""
+        productName: "",
+        productCount: 1
     })
 
-    const deviceId = useRecoilValue(deviceIdAtom)
+    const userCode = useRecoilValue(userCodeAtom);
 
     useEffect(() => {
         const savedDeliveryId = localStorage.getItem("deliveryId");
@@ -44,7 +46,7 @@ function IndexPage() {
 
         const interval = setInterval(() => {
             localStorage.setItem("positions", JSON.stringify(positions));
-        }, 7000)
+        }, 5000)
 
         return () => clearInterval(interval);
     }, [positions])
@@ -65,14 +67,14 @@ function IndexPage() {
     }, [positions, deliveryId]);
 
     const queryClient = useQueryClient();
-    const location = queryClient.getQueryData(["deviceLocation", deviceId])
+    const user = queryClient.getQueryData(["user", userCode])
     const cargoLocations = queryClient.getQueryData(["cargoLocations"])
     const products = queryClient.getQueryData(["products"])
 
-    const deviceLocations = useQuery({
-        queryKey: ["deviceLocations"],
-        queryFn: () => instance.get(`/locations/device/${deviceId}`),
-        enabled: !!deviceId,
+    const userLocations = useQuery({
+        queryKey: ["userLocations"],
+        queryFn: () => instance.get(`/user/locations/${userCode}`),
+        enabled: !!userCode,
         refetchInterval: 5000,
         refetchOnWindowFocus: false,
         retry: 0
@@ -80,14 +82,14 @@ function IndexPage() {
 
     const updateLocation = useMutation({
         mutationFn: ({ latitude, longitude }) =>
-            instance.put("/location", { deviceId, latitude, longitude }),
+            instance.put("/user/location", { userCode, latitude, longitude }),
         onError: (error) => {
             alert(error?.response?.data?.message);
         }
     });
 
     useEffect(() => {
-        if (!deviceId || !navigator.geolocation) return;
+        if (!userCode || !navigator.geolocation) return;
 
         const watchId = navigator.geolocation.watchPosition(
             ({ coords }) => {
@@ -107,15 +109,16 @@ function IndexPage() {
         );
 
         return () => navigator.geolocation.clearWatch(watchId);
-    }, [deviceId, isTracking]);
+    }, [userCode, isTracking]);
 
     const startDelivery = useMutation({
-        mutationFn: ({ productId, cargoId }) =>
-            instance.post("/delivery", { deviceId, cargoId, productId }),
+        mutationFn: ({ productId, cargoId, productCount }) =>
+            instance.post("/delivery", { userCode, cargoId, productId, productCount }),
         onSuccess: (res) => {
             setDeliveryId(res?.data)
             localStorage.setItem("deliveryId", res?.data)
             alert("출발")
+            queryClient.invalidateQueries(["user", userCode])
         },
         onError: (error) => {
             alert(error?.response?.data?.message);
@@ -131,6 +134,7 @@ function IndexPage() {
             localStorage.removeItem("deliveryId");
             localStorage.removeItem("positions");
             alert("도착")
+            queryClient.invalidateQueries(["user", userCode])
         },
         onError: (error) => {
             alert(error?.response?.data?.message);
@@ -140,7 +144,7 @@ function IndexPage() {
     const handleStartTrackingOnClick = async () => {
         setIsShowCargoLocations(false)
         setIsShowProducts(false)
-        await startDelivery.mutateAsync({ productId: delivery?.productId, cargoId: delivery?.cargoId })
+        await startDelivery.mutateAsync({ productId: delivery?.productId, cargoId: delivery?.cargoId, productCount: delivery?.productCount })
         setIsTracking(true)
     }
 
@@ -153,6 +157,7 @@ function IndexPage() {
     return (
         <Layout>
             <SideBar
+                user={user?.data}
                 delivery={delivery}
                 setDelivery={setDelivery}
                 isShowCargoLoations={isShowCargoLoations}
@@ -169,16 +174,21 @@ function IndexPage() {
                 onClick2={handleStopTrackingOnClick}
             />
             {
-                location &&
+                user &&
                 <IndexMap
-                    location={location?.data}
+                    user={user?.data}
                     position={position}
                     positions={positions}
                     cargoLocations={cargoLocations?.data}
-                    deviceLocations={deviceLocations?.data?.data}
+                    userLocations={userLocations?.data?.data}
                 />
             }
+            {
+                user &&
+                <InfoBox user={user?.data} />
+            }
             <BottomBar
+                user={user?.data}
                 delivery={delivery}
                 setDelivery={setDelivery}
                 isShowCargoLoations={isShowCargoLoations}

@@ -15,8 +15,8 @@ const RecentLocation = ({ location }) => {
     return null;
 };
 
-function HistoryMap({ location, index, history }) {
-    const defaultLocation = [location?.latitude, location?.longitude];
+function HistoryMap({ user, index, history }) {
+    const defaultLocation = [user?.latitude, user?.longitude];
 
     const [tempHistory, setTempHistory] = useState([]);
 
@@ -30,7 +30,7 @@ function HistoryMap({ location, index, history }) {
     return (
         <div css={s.layout}>
             {
-                location ?
+                user ?
                     <MapContainer
                         center={defaultLocation}
                         zoom={17}

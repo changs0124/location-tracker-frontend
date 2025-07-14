@@ -6,43 +6,35 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { instance } from './apis/instance';
 import { useRecoilState } from 'recoil';
-import { deviceIdAtom } from './atoms/deviceAtoms';
 import DefaultPage from './pages/DefaultPage/DefaultPage';
 import IndexPage from './pages/IndexPage/IndexPage';
 import HistoryPage from './pages/HistoryPage/HistoryPage';
+import { userCodeAtom } from './atoms/userAtoms';
 
 function App() {
-    const [deviceId, setDeviceId] = useRecoilState(deviceIdAtom);
+    const [userCode, setUserCode] = useRecoilState(userCodeAtom);
 
     useEffect(() => {
-        const storedId = localStorage.getItem('deviceId');
-        if (storedId) {
-            setDeviceId(storedId);
+        const storedCode = localStorage.getItem("userCode");
+        if (storedCode) {
+            setUserCode(storedCode);
         } else {
-            console.warn('로컬스토리지에 deviceId가 없습니다.');
+            console.warn('로컬스토리지에 userCode가 없습니다.');
         }
     }, []);
 
-    const auth = useQuery({
-        queryKey: ['getDeviceId'],
-        queryFn: () => instance.get(`/device/${deviceId}`),
-        enabled: !!deviceId,
-        refetchOnWindowFocus: false,
-        retry: 0
-    });
-
-    const location = useQuery({
-        queryKey: ['deviceLocation', deviceId],
-        queryFn: () => instance.get(`/location/${deviceId}`),
-        enabled: auth.isSuccess && !!auth?.data?.data,
+    const user = useQuery({
+        queryKey: ["user", userCode],
+        queryFn: () => instance.get(`/user/location/${userCode}`),
+        enabled: !!userCode,
         refetchOnWindowFocus: false,
         retry: 0
     });
 
     const cargoLocations = useQuery({
         queryKey: ["cargoLocations"],
-        queryFn: () => instance.get("/locations/cargo"),
-        enabled: auth.isSuccess && !!auth?.data?.data,
+        queryFn: () => instance.get("/cargos"),
+        enabled: user?.isSuccess && !!user?.data?.data,
         refetchOnWindowFocus: false,
         retry: 0
     })
@@ -50,7 +42,7 @@ function App() {
     const products = useQuery({
         queryKey: ["products"],
         queryFn: () => instance.get("/products"),
-        enabled: auth.isSuccess && !!auth?.data?.data,
+        enabled: user?.isSuccess && !!user?.data?.data,
         refetchOnWindowFocus: false,
         retry: 0
     })
@@ -59,8 +51,8 @@ function App() {
         <>
             <Global styles={reset} />
             <Routes>
-                <Route path="/" element={auth.isSuccess && !!auth?.data?.data ? <IndexPage /> : <DefaultPage />} />
-                <Route path="/history" element={auth.isSuccess && !!auth?.data?.data ? <HistoryPage /> : <DefaultPage />} />
+                <Route path="/" element={user?.isSuccess && !!user?.data?.data ? <IndexPage /> : <DefaultPage />} />
+                <Route path="/history" element={user?.isSuccess && !!user?.data?.data ? <HistoryPage /> : <DefaultPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </>

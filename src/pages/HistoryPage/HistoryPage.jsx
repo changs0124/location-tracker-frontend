@@ -2,7 +2,6 @@
 import * as s from './style';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRecoilValue } from 'recoil';
-import { deviceIdAtom } from '../../atoms/deviceAtoms';
 import { useEffect, useState } from 'react';
 import { HiOutlineStop, HiMiniCheck } from "react-icons/hi2";
 import { instance } from '../../apis/instance';
@@ -10,6 +9,7 @@ import Layout from '../../components/Layout/Layout';
 import HistoryMap from '../../components/map/HistoryMap/HistoryMap';
 import SideBar from '../../components/bar/SideBar/SideBar';
 import BottomBar from '../../components/bar/BottomBar/BottomBar';
+import { userCodeAtom } from '../../atoms/userAtoms';
 
 function HistoryPage() {
     const [index, setIndex] = useState(0);
@@ -22,13 +22,15 @@ function HistoryPage() {
         cargoId: 0,
         cargoName: "",
         productId: 0,
-        productName: ""
+        productName: "",
+        productVolume: 0,
+        productCount: 1
     })
 
-    const deviceId = useRecoilValue(deviceIdAtom);
+    const userCode = useRecoilValue(userCodeAtom);
 
     const queryClient = useQueryClient();
-    const location = queryClient.getQueryData(['deviceLocation', deviceId])
+    const user = queryClient.getQueryData(["user", userCode])
     const cargoLocations = queryClient.getQueryData(["cargoLocations"])
     const products = queryClient.getQueryData(["products"])
 
@@ -49,8 +51,9 @@ function HistoryPage() {
 
     const search = useMutation({
         mutationFn: ({ cargoId, productId }) =>
-            instance.get(`/history?cargoId=${cargoId}&productId=${productId}`),
+            instance.get(`/historys?cargoId=${cargoId}&productId=${productId}`),
         onSuccess: (res) => {
+            console.log(res?.data)
             setHistory(res?.data)
         },
         onError: (error) => {
@@ -59,10 +62,12 @@ function HistoryPage() {
     });
 
     const handleSearchOnClick = async () => {
+        setIndex(0)
         await search.mutateAsync({ cargoId: delivery?.cargoId, productId: delivery?.productId });
     }
 
     const handleResetOnClick = async () => {
+        setIndex(0)
         setDelivery({
             cargoId: 0,
             cargoName: "전체",
@@ -94,7 +99,7 @@ function HistoryPage() {
             />
             <div css={s.layout}>
                 <HistoryMap
-                    location={location?.data}
+                    user={user?.data}
                     index={index}
                     history={history}
                 />
@@ -117,7 +122,7 @@ function HistoryPage() {
                                     <tr key={his?.id} onClick={() => handleSelectHistoryOnClick(idx)} >
                                         <td>{index === idx ? <HiMiniCheck /> : <HiOutlineStop />}</td>
                                         <td>{his?.cargoName}</td>
-                                        <td>{his?.deviceName}</td>
+                                        <td>{his?.userName}</td>
                                         <td>{his?.productName}</td>
                                         <td>{his?.startTime?.replace("T", " ").substring(0, 16)}</td>
                                         <td>{his?.endTime?.replace("T", " ").substring(0, 16)}</td>

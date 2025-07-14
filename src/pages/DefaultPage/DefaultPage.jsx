@@ -1,27 +1,42 @@
 /** @jsxImportSource @emotion/react */
 import * as s from './style';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { instance } from '../../apis/instance';
 import { v4 as uuidv4 } from 'uuid';
 import { useRecoilState } from 'recoil';
-import { deviceIdAtom } from '../../atoms/deviceAtoms';
 import { useState } from 'react';
+import { HiChevronDown } from "react-icons/hi2";
+import { userCodeAtom } from '../../atoms/userAtoms';
 
 function DefaultPage() {
-    const [deviceId, setDeviceId] = useRecoilState(deviceIdAtom);
+    const [userCode, setUserCode] = useRecoilState(userCodeAtom);
 
-    const [deviceName, setDeviceName] = useState("");
+    const [user, setUser] = useState({
+        userName: "",
+        deviceId: 0,
+        deviceNumber: "장치 넘버를 선택하여 주세요"
+    });
+    const [isShowDevice, setIsShowDevice] = useState(false)
+
+    const devices = useQuery({
+        queryKey: ["devices"],
+        queryFn: () => instance.get("/devices"),
+        enabled: true,
+        refetchOnWindowFocus: false,
+        retry: 0
+    });
 
     const registerDevice = useMutation({
         mutationFn: ({ latitude, longitude }) =>
-            instance.post("/device", {
-                deviceId,
-                deviceName: deviceName.replace(/\s+/g, ""),
+            instance.post("/user", {
+                userCode,
+                userName: user?.userName.replace(/\s+/g, ""),
+                deviceId: user?.deviceId,
                 latitude,
                 longitude,
-        }),
+            }),
         onSuccess: () => {
-            localStorage.setItem("deviceId", deviceId)
+            localStorage.setItem("userCode", userCode)
             alert("장치 등록 성공");
             window.location.reload("/");
         },
@@ -31,19 +46,18 @@ function DefaultPage() {
     });
 
     const handleRegisterOnClick = () => {
-        if(deviceName.trim() === "") {
+        if (user?.userName?.trim() === "") {
             alert("장치 이름을 입력해주세요.")
             return
         }
 
-        const id = uuidv4();
-        setDeviceId(id);
+        const tempCode = uuidv4();
+        setUserCode(tempCode);
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
                 registerDevice.mutate({
-                    deviceId: id,
                     latitude,
                     longitude,
                 })
@@ -56,17 +70,49 @@ function DefaultPage() {
         );
     };
 
-    const handleDeviceNameOnChange = (e) => {
-        setDeviceName(e.target.value)
+    const handleUserNameOnChange = (e) => {
+        setUser(pre => ({
+            ...pre,
+            userName: e.target.value
+        }))
     }
+
+    const handleSelectBoxOnClick = () => {
+        setIsShowDevice(!isShowDevice)
+    }
+
+    const handleSelectDeviceOnClick = (dev) => {
+        setUser(pre => ({
+            ...pre,
+            deviceId: dev?.id,
+            deviceNumber: dev?.deviceNumber
+        }))
+        setIsShowDevice(false)
+    }  
 
     return (
         <div css={s.layout}>
             <div css={s.container}>
                 <h2>장치 등록</h2>
-                <div css={s.inputBox}>
-                    <input type="text" name="" value={deviceName} onChange={handleDeviceNameOnChange} placeholder="장치 이름을 입력 해주세요."/>
+                <div css={s.selectBox(isShowDevice, user?.deviceId)}>
+                    <p onClick={handleSelectBoxOnClick}>{user?.deviceNumber}<HiChevronDown /></p>
+                    <div css={s.optionBox}>
+                        {
+                            (isShowDevice && devices?.data?.data?.length > 0) && devices?.data?.data?.filter(dev => dev?.deviceNumber !== user?.deviceNumber)
+                                .map(dev => (
+                                    <p key={dev.id} onClick={() => handleSelectDeviceOnClick(dev)}>
+                                        {dev?.deviceNumber}
+                                    </p>
+                                ))
+                        }
+                    </div>
                 </div>
+                {
+                    (user.deviceId !== 0 && !isShowDevice) &&
+                    <div css={s.inputBox}>
+                        <input type="text" name="" value={user?.userName} onChange={handleUserNameOnChange} placeholder="장치 이름을 입력 해주세요." />
+                    </div>
+                }
                 <div css={s.buttonBox}>
                     <button onClick={handleRegisterOnClick} disabled={registerDevice.isPending}>
                         {

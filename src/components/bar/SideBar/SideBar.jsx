@@ -4,19 +4,38 @@ import { HiChevronDown } from "react-icons/hi2";
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-function SideBar({ delivery, setDelivery, isShowCargoLoations, setIsShowCargoLocations, cargoLocations, isShowProducts, setIsShowProducts, products, isTracking, onClick1, onClick2 }) {
+function SideBar({ user, delivery, setDelivery, isShowCargoLoations, setIsShowCargoLocations, cargoLocations, isShowProducts, setIsShowProducts, products, isTracking, onClick1, onClick2 }) {
     const location = useLocation();
 
     useEffect(() => {
-        if (!!cargoLocations?.length && !!products?.length) {
-            setDelivery({
-                cargoId: cargoLocations[0]?.id,
-                cargoName: cargoLocations[0]?.cargoName,
-                productId: products[0]?.id,
-                productName: products[0]?.productName
-            })
+        if (!cargoLocations?.length && !products?.length) return
+
+        setDelivery(pre => ({
+            ...pre,
+            cargoId: cargoLocations?.[0]?.id,
+            cargoName: cargoLocations?.[0]?.cargoName,
+            productId: products?.[0]?.id,
+            productName: products?.[0]?.productName,
+            productVolume: products?.[0]?.volume
+        }))
+    }, [cargoLocations])
+
+    const handleProductCountOnChange = (e) => {
+        if (delivery?.productVolume * e.target.value > user?.deviceMaxVolume) {
+
+            alert(`최대 적재량을 초과했습니다.\n최대 ${Math.floor(user?.deviceMaxVolume / delivery?.productVolume)}개까지 가능합니다.`);
+            setDelivery(prev => ({
+                ...prev,
+                productCount: Math.floor(user?.deviceMaxVolume / delivery?.productVolume)
+            }));
+            return
         }
-    }, [cargoLocations, products])
+
+        setDelivery(prev => ({
+            ...prev,
+            productCount: Number(e.target.value) < 1 ? 1 : Number(e.target.value)
+        }));
+    }
 
     const handleSelectDestinationOnClick = (cargo) => {
         setDelivery(pre => ({
@@ -31,7 +50,9 @@ function SideBar({ delivery, setDelivery, isShowCargoLoations, setIsShowCargoLoc
         setDelivery(pre => ({
             ...pre,
             productId: product?.id,
-            productName: product?.productName
+            productName: product?.productName,
+            productVolume: product?.volume,
+            productCount: 1
         }))
         setIsShowProducts(false)
     }
@@ -61,8 +82,8 @@ function SideBar({ delivery, setDelivery, isShowCargoLoations, setIsShowCargoLoc
                     {
                         (isShowCargoLoations && cargoLocations?.length > 0) && cargoLocations?.filter(cargo => cargo?.cargoName !== delivery?.cargoName)
                             .map(cargo => (
-                                <p key={cargo.id} onClick={() => handleSelectDestinationOnClick(cargo)}>
-                                    {cargo.cargoName}
+                                <p key={cargo?.id} onClick={() => handleSelectDestinationOnClick(cargo)}>
+                                    {cargo?.cargoName}
                                 </p>
                             ))
                     }
@@ -76,6 +97,13 @@ function SideBar({ delivery, setDelivery, isShowCargoLoations, setIsShowCargoLoc
                         <p onClick={!isTracking ? handleSelectProductBoxOnClick : () => { }}>{delivery?.productName}<HiChevronDown /></p>
                         :
                         <p onClick={handleSelectProductBoxOnClick}>{delivery?.productName}<HiChevronDown /></p>
+                }
+                {
+                    (location.pathname === "/" && !isShowProducts) &&
+                    <div css={s.inputBox}>
+                        <span>수량</span>
+                        <input type="number" value={delivery?.productCount} onChange={!isTracking ? handleProductCountOnChange : () => {}} />
+                    </div>
                 }
                 <div css={s.optionBox}>
                     {

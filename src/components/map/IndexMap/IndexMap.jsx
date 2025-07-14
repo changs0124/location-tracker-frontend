@@ -2,7 +2,6 @@
 import * as s from './style';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import { HiOutlineTruck } from "react-icons/hi2";
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -70,14 +69,14 @@ const RecentLocation = ({ location }) => {
     return null;
 };
 
-function IndexMap({ location, position, positions, cargoLocations, deviceLocations }) {
-    const defaultLocation = [location?.latitude, location?.longitude];
+function IndexMap({ user, position, positions, cargoLocations, userLocations }) {
+    const defaultLocation = [user?.latitude, user?.longitude];
     const tempLocation = !!position.length ? position : defaultLocation;
 
     return (
         <div css={s.layout}>
             {
-                location ?
+                user ?
                     <MapContainer
                         center={tempLocation}
                         zoom={17}
@@ -104,13 +103,7 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                         <Marker
                             icon={myIcon}
                             position={tempLocation}
-                        >
-                            <Popup>
-                                <div css={s.popupBox}>
-                                    <p>장치 : {location?.deviceName}</p>
-                                </div>
-                            </Popup>
-                        </Marker>
+                        />
                         {
                             cargoLocations?.map(cargo => (
                                 <Marker
@@ -127,26 +120,48 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                             ))
                         }
                         {
-                            deviceLocations?.map(device => (
+                            userLocations?.map(user => (
                                 <Marker
-                                    key={device?.id}
-                                    icon={device?.status === 1 ? runIcon : deviceIcon}
-                                    position={[device?.latitude, device?.longitude]}
+                                    key={user?.id}
+                                    icon={user?.status === 1 ? runIcon : deviceIcon}
+                                    position={[user?.latitude, user?.longitude]}
                                 >
                                     <Popup>
                                         {
-                                            device?.status === 1
-                                                ?
-                                                <div css={s.popupBox}>
-                                                    <p>장치: {device?.deviceName}</p>
-                                                    <p>목적지 : {device?.cargoName}</p>
-                                                    <p>화물 : {device?.productName}</p>
-                                                </div>
-                                                :
-                                                <div css={s.popupBox}>
-                                                    <p>장치: {device?.deviceName}</p>
-                                                    <p>운행 정보 없음</p>
-                                                </div>
+                                            <div css={s.popupBox}>
+                                                <table css={s.tableLayout}>
+                                                    <tbody>
+                                                        <tr>
+                                                            <th>이름</th>
+                                                            <td>{user?.userName}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>장치</th>
+                                                            <td>{user?.deviceNumber}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>최대 적재율</th>
+                                                            <td>{Number(user?.deviceMaxVolume).toFixed(2)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>목적지</th>
+                                                            <td>{!!user?.status ? user?.cargoName : "현재 목적지 없음"}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>제품</th>
+                                                            <td>{!!user?.status ? user?.productName : "현재 화물 없음"}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>수량</th>
+                                                            <td>{!!user?.status ? user?.productCount : ""}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>적재율</th>
+                                                            <td>{!!user?.status ? Number((user?.productVolume * user?.productCount / user?.deviceMaxVolume * 100)).toFixed(2) + "%" : "0.00%"}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         }
                                     </Popup>
                                 </Marker>
@@ -160,7 +175,7 @@ function IndexMap({ location, position, positions, cargoLocations, deviceLocatio
                         style={{ height: '100%', width: '100%' }}
                     />
             }
-        </div>
+        </div >
     );
 }
 
